@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DONATEHUB | Donation Inventory & Distribution</title>
+<style>
+:root{
+  --green:#16845b;--green-dark:#106b49;--green-soft:#e8f5ee;
+  --ink:#20312a;--muted:#718078;--line:#e5ece7;--bg:#f5f8f6;
+  --white:#fff;--amber:#fff3d8;--red:#fde9e7;--blue:#eaf2ff;
+  --shadow:0 8px 24px rgba(26,65,45,.06);--radius:16px
+}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,Segoe UI,Arial,sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer}
+.app{min-height:100vh;display:flex}
+.sidebar{width:248px;background:#fff;border-right:1px solid var(--line);padding:24px 16px;position:fixed;inset:0 auto 0 0;display:flex;flex-direction:column;z-index:5}
+.brand{display:flex;align-items:center;gap:11px;padding:0 10px 26px}
+.brand-mark{width:42px;height:42px;border-radius:13px;background:var(--green);color:#fff;display:grid;place-items:center;font-size:22px}
+.brand strong{display:block;font-size:17px;letter-spacing:.6px}.brand small{color:var(--muted);font-size:11px}
+.nav-label{color:#9aa69f;font-size:10px;font-weight:800;letter-spacing:1.2px;padding:13px 12px 8px}
+.nav{display:grid;gap:5px}.nav button{border:0;background:transparent;color:#637269;text-align:left;padding:11px 12px;border-radius:10px;display:flex;align-items:center;gap:12px;font-weight:600}
+.nav button:hover{background:#f4f8f5;color:var(--green)}.nav button.active{background:var(--green-soft);color:var(--green-dark)}
+.nav-icon{width:20px;text-align:center;font-size:17px}
+.sidebar-bottom{margin-top:auto;border-top:1px solid var(--line);padding:16px 10px 0;color:var(--muted);font-size:12px}
+.main{margin-left:248px;width:calc(100% - 248px);padding:26px 32px 44px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;gap:16px}
+.breadcrumb{color:var(--muted);font-size:12px}.top-actions{display:flex;align-items:center;gap:12px}
+.search-top{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;width:220px}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--green-soft);color:var(--green-dark);display:grid;place-items:center;font-weight:800}
+.page{display:none;animation:fade .2s ease}.page.active{display:block}@keyframes fade{from{opacity:.55;transform:translateY(4px)}to{opacity:1;transform:none}}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px}
+h1{font-size:25px;margin:0 0 5px;letter-spacing:-.5px}h2{font-size:16px;margin:0 0 15px}
+.subtitle{color:var(--muted);margin:0}.eyebrow{font-size:10px;letter-spacing:1.2px;color:var(--green);font-weight:800;text-transform:uppercase;margin-bottom:6px}
+.btn{border:0;border-radius:10px;padding:10px 15px;font-weight:700;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:var(--green);color:#fff}.btn-primary:hover{background:var(--green-dark)}
+.btn-light{background:#fff;border:1px solid var(--line);color:var(--ink)}.btn-danger{background:var(--red);color:#a43d36}
+.grid{display:grid;gap:16px}.stats{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.stat{display:flex;justify-content:space-between;align-items:flex-start}.stat-icon{width:40px;height:40px;border-radius:12px;background:var(--green-soft);display:grid;place-items:center;font-size:19px}
+.stat-value{font-size:27px;font-weight:800;margin:10px 0 2px;letter-spacing:-.8px}.stat-label{color:var(--muted);font-size:12px}.trend{font-size:11px;color:var(--green);font-weight:700}
+.two-col{grid-template-columns:1.35fr 1fr}.three-col{grid-template-columns:repeat(3,1fr)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.panel-head h2{margin:0}.muted{color:var(--muted)}.small{font-size:12px}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;white-space:nowrap}
+th{text-align:left;color:#87948c;font-size:10px;text-transform:uppercase;letter-spacing:.7px;padding:12px 10px;border-bottom:1px solid var(--line)}
+td{padding:13px 10px;border-bottom:1px solid #eef2ef;font-size:12px}tbody tr:last-child td{border-bottom:0}
+.item-name{font-weight:700;color:var(--ink)}.subtext{font-size:11px;color:var(--muted)}
+.status{display:inline-flex;align-items:center;border-radius:30px;padding:4px 9px;font-size:10px;font-weight:800;background:#edf4ef;color:#39714e}
+.status.pending{background:var(--amber);color:#91661d}.status.progress{background:var(--blue);color:#3f67a4}.status.danger{background:var(--red);color:#a43d36}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px}.field{display:grid;gap:6px;margin-bottom:13px}
+.field label{font-size:11px;font-weight:700;color:#59675f}
+.field input,.field select,.field textarea,.toolbar input,.toolbar select{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 11px;background:#fff;color:var(--ink);outline:none}
+.field input:focus,.field select:focus,.field textarea:focus,.toolbar input:focus{border-color:#80b99c;box-shadow:0 0 0 3px #e8f5ee}
+.toolbar input{max-width:260px}.toolbar select{width:auto;min-width:145px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}.form-grid .full{grid-column:1/-1}
+.category-grid{grid-template-columns:repeat(3,1fr)}
+.category-card{display:flex;gap:14px;align-items:center}.category-icon{width:48px;height:48px;border-radius:14px;background:var(--green-soft);display:grid;place-items:center;font-size:22px}
+.category-card strong{display:block;font-size:14px}.category-card small{color:var(--muted)}
+.bar-row{display:grid;grid-template-columns:100px 1fr 38px;align-items:center;gap:10px;margin:13px 0;font-size:12px}
+.bar{height:8px;border-radius:10px;background:#edf2ee;overflow:hidden}.bar span{height:100%;display:block;background:var(--green);border-radius:10px}
+.alert{display:flex;gap:10px;padding:12px;border-radius:12px;background:#fff8e9;color:#87621e;font-size:12px;margin-top:12px}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.timeline{display:grid;gap:13px}.timeline-row{display:flex;gap:12px;align-items:flex-start}.dot{width:9px;height:9px;border-radius:50%;background:var(--green);margin-top:5px;box-shadow:0 0 0 4px var(--green-soft)}
+.actions{display:flex;gap:6px}.mini{border:1px solid var(--line);background:#fff;border-radius:7px;padding:5px 8px;font-size:11px}
+.modal-backdrop{display:none;position:fixed;inset:0;background:#17251dcc;z-index:20;align-items:center;justify-content:center;padding:18px}
+.modal-backdrop.show{display:flex}.modal{width:min(560px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;padding:22px;box-shadow:0 20px 70px #0003}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.modal-head h2{margin:0}
+.close{border:0;background:#f1f5f2;border-radius:8px;width:32px;height:32px;font-size:18px}
+.toast{position:fixed;right:24px;bottom:24px;background:#203b2d;color:#fff;padding:12px 17px;border-radius:10px;box-shadow:var(--shadow);display:none;z-index:30}
+.mobile-menu{display:none;border:0;background:#fff;border-radius:9px;padding:8px}
+.progress-line{height:7px;border-radius:10px;background:#edf2ee;overflow:hidden}.progress-line span{display:block;height:100%;background:var(--green)}
+@media(max-width:1050px){.stats{grid-template-columns:repeat(2,1fr)}.two-col{grid-template-columns:1fr}.category-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.sidebar{transform:translateX(-100%);transition:.2s}.sidebar.open{transform:translateX(0)}.main{margin:0;width:100%;padding:18px}.mobile-menu{display:block}.topbar{margin-bottom:20px}.search-top{width:145px}.page-head{align-items:flex-start}.page-head .btn{padding:9px;font-size:11px}.three-col,.category-grid{grid-template-columns:1fr}.stats{gap:10px}.card{padding:14px}h1{font-size:22px}}
+@media(max-width:430px){.stats{grid-template-columns:1fr 1fr}.stat-value{font-size:22px}.search-top{display:none}.form-grid{grid-template-columns:1fr}.form-grid .full{grid-column:auto}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><div class="brand-mark">♡</div><div><strong>DONATEHUB</strong><small>Inventory & Distribution</small></div></div>
+  <div class="nav-label">WORKSPACE</div>
+  <nav class="nav" id="navigation">
+    <button class="active" data-page="dashboard"><span class="nav-icon">▦</span>Dashboard</button>
+    <button data-page="donations"><span class="nav-icon">♡</span>Donations</button>
+    <button data-page="categories"><span class="nav-icon">▤</span>Categories</button>
+    <button data-page="inventory"><span class="nav-icon">▣</span>Inventory</button>
+    <button data-page="recipients"><span class="nav-icon">♙</span>Recipients</button>
+    <button data-page="requests"><span class="nav-icon">☷</span>Requests</button>
+    <button data-page="allocation"><span class="nav-icon">⇄</span>Allocation</button>
+    <button data-page="distribution"><span class="nav-icon">♧</span>Distribution</button>
+    <div class="nav-label">INSIGHTS & SYSTEM</div>
+    <button data-page="reports"><span class="nav-icon">▥</span>Reports & Analytics</button>
+    <button data-page="settings"><span class="nav-icon">⚙</span>Settings</button>
+  </nav>
+  <div class="sidebar-bottom">Making every donation count.<br><strong style="color:var(--green)">Together, we make an impact.</strong></div>
+</aside>
+
+<main class="main">
+<header class="topbar">
+  <div style="display:flex;align-items:center;gap:12px"><button class="mobile-menu" id="menuBtn">☰</button><div class="breadcrumb">DONATEHUB <span style="padding:0 6px">/</span> <span id="crumb">Dashboard</span></div></div>
+  <div class="top-actions"><input class="search-top" id="globalSearch" placeholder="Search inventory..."><div class="avatar">A</div></div>
+</header>
+
+<section class="page active" id="page-dashboard">
+  <div class="page-head"><div><div class="eyebrow">OVERVIEW</div><h1>Good day, Administrator 👋</h1><p class="subtitle">Here's what's happening at your donation centre today.</p></div><button class="btn btn-primary" onclick="openModal('donation')">＋ Add Donation</button></div>
+  <div class="grid stats">
+    <div class="card"><div class="stat"><span class="stat-label">Total donations received</span><span class="stat-icon">♡</span></div><div class="stat-value" id="statDonations">1,250</div><div class="trend">↑ 12% <span class="muted">from last month</span></div></div>
+    <div class="card"><div class="stat"><span class="stat-label">Available inventory</span><span class="stat-icon">▣</span></div><div class="stat-value" id="statStock">850</div><div class="trend">Items ready for allocation</div></div>
+    <div class="card"><div class="stat"><span class="stat-label">Pending requests</span><span class="stat-icon">☷</span></div><div class="stat-value" id="statRequests">45</div><div class="trend" style="color:#b27b22">Needs review</div></div>
+    <div class="card"><div class="stat"><span class="stat-label">Goods distributed</span><span class="stat-icon">♧</span></div><div class="stat-value" id="statDistributed">400</div><div class="trend">Helping communities</div></div>
+  </div>
+  <div class="grid two-col">
+    <div class="card"><div class="panel-head"><h2>Inventory by category</h2><span class="small muted">Available items</span></div><div id="categoryBars"></div></div>
+    <div class="card"><div class="panel-head"><h2>Urgent requirements</h2><span class="status pending">Needs attention</span></div><div class="timeline" id="urgentList"></div></div>
+  </div>
+  <div class="card" style="margin-top:16px"><div class="panel-head"><h2>Recent activity</h2><button class="btn btn-light" onclick="showPage('donations')">View donations →</button></div><div class="table-wrap"><table><thead><tr><th>Activity</th><th>Details</th><th>Date</th><th>Status</th></tr></thead><tbody id="recentActivity"></tbody></table></div></div>
+</section>
+
+<section class="page" id="page-donations">
+  <div class="page-head"><div><div class="eyebrow">INCOMING GOODS</div><h1>Donation Management</h1><p class="subtitle">Register and manage goods received from donors.</p></div><button class="btn btn-primary" onclick="openModal('donation')">＋ Add New Donation</button></div>
+  <div class="card"><div class="toolbar"><input id="donationSearch" placeholder="Search donor or item..." oninput="renderDonations()"><select id="donationCategory" onchange="renderDonations()"><option value="">All categories</option><option>Clothing</option><option>Food</option><option>Furniture</option><option>Books</option><option>Electronics</option><option>Household</option></select></div>
+  <div class="table-wrap"><table><thead><tr><th>Donation ID</th><th>Donor</th><th>Item / Category</th><th>Quantity</th><th>Condition</th><th>Date</th><th>Status</th></tr></thead><tbody id="donationsTable"></tbody></table></div></div>
+</section>
+
+<section class="page" id="page-categories">
+  <div class="page-head"><div><div class="eyebrow">ORGANISE GOODS</div><h1>Category Management</h1><p class="subtitle">Browse donation types and understand stock distribution.</p></div><button class="btn btn-primary" onclick="openModal('category')">＋ Add Category</button></div>
+  <div class="grid category-grid" id="categoryCards"></div>
+</section>
+
+<section class="page" id="page-inventory">
+  <div class="page-head"><div><div class="eyebrow">STOCK CONTROL</div><h1>Inventory Management</h1><p class="subtitle">Monitor available, reserved and distributed goods.</p></div><button class="btn btn-primary" onclick="openModal('donation')">＋ Receive Stock</button></div>
+  <div class="grid stats">
+    <div class="card"><div class="stat-label">Total stock units</div><div class="stat-value" id="inventoryTotal">850</div></div>
+    <div class="card"><div class="stat-label">Available</div><div class="stat-value" id="inventoryAvailable">850</div></div>
+    <div class="card"><div class="stat-label">Reserved</div><div class="stat-value" id="inventoryReserved">0</div></div>
+    <div class="card"><div class="stat-label">Low stock items</div><div class="stat-value" id="inventoryLow">2</div></div>
+  </div>
+  <div class="card"><div class="toolbar"><input id="inventorySearch" placeholder="Search item or storage location..." oninput="renderInventory()"><select id="inventoryCategory" onchange="renderInventory()"><option value="">All categories</option><option>Clothing</option><option>Food</option><option>Furniture</option><option>Books</option><option>Electronics</option><option>Household</option></select><select id="inventoryCondition" onchange="renderInventory()"><option value="">All conditions</option><option>New</option><option>Good</option><option>Fair</option></select></div>
+  <div class="table-wrap"><table><thead><tr><th>Item</th><th>Category</th><th>Available</th><th>Reserved</th><th>Condition</th><th>Storage location</th><th>Stock status</th></tr></thead><tbody id="inventoryTable"></tbody></table></div><div class="alert">⚠ <span>Review low-stock items and food expiry dates regularly. Only safe, usable goods should be allocated.</span></div></div>
+</section>
+
+<section class="page" id="page-recipients">
+  <div class="page-head"><div><div class="eyebrow">COMMUNITY NETWORK</div><h1>Recipient Management</h1><p class="subtitle">Manage NGOs, shelters, schools and beneficiary organisations.</p></div><button class="btn btn-primary" onclick="openModal('recipient')">＋ Add Recipient</button></div>
+  <div class="card"><div class="toolbar"><input id="recipientSearch" placeholder="Search recipient or location..." oninput="renderRecipients()"><select id="recipientType" onchange="renderRecipients()"><option value="">All organisations</option><option>NGO</option><option>Shelter</option><option>School</option><option>Community Centre</option></select></div>
+  <div class="table-wrap"><table><thead><tr><th>Recipient</th><th>Type</th><th>Contact person</th><th>Phone</th><th>Location</th><th>Beneficiaries</th><th>Verification</th></tr></thead><tbody id="recipientsTable"></tbody></table></div></div>
+</section>
+
+<section class="page" id="page-requests">
+  <div class="page-head"><div><div class="eyebrow">COMMUNITY NEEDS</div><h1>Donation Requests</h1><p class="subtitle">Review requirements submitted by recipient organisations.</p></div><button class="btn btn-primary" onclick="openModal('request')">＋ Create Request</button></div>
+  <div class="card"><div class="toolbar"><input id="requestSearch" placeholder="Search request or recipient..." oninput="renderRequests()"><select id="requestStatus" onchange="renderRequests()"><option value="">All statuses</option><option>Pending</option><option>Under Review</option><option>Approved</option><option>Partially Approved</option><option>Rejected</option><option>Fulfilled</option></select></div>
+  <div class="table-wrap"><table><thead><tr><th>Request ID</th><th>Recipient</th><th>Item required</th><th>Quantity</th><th>Priority</th><th>Required by</th><th>Status</th><th>Action</th></tr></thead><tbody id="requestsTable"></tbody></table></div></div>
+</section>
+
+<section class="page" id="page-allocation">
+  <div class="page-head"><div><div class="eyebrow">MATCH NEEDS TO STOCK</div><h1>Allocation Management</h1><p class="subtitle">Assign available goods to approved recipient requests.</p></div><button class="btn btn-primary" onclick="openModal('allocation')">＋ New Allocation</button></div>
+  <div class="grid two-col" style="margin-bottom:16px"><div class="card"><div class="stat-label">Approved requests awaiting allocation</div><div class="stat-value" id="approvedCount">0</div><p class="small muted">Review approved needs and available stock.</p></div><div class="card"><div class="stat-label">Total units allocated</div><div class="stat-value" id="allocatedCount">0</div><p class="small muted">Reserved for recipient organisations.</p></div></div>
+  <div class="card"><div class="panel-head"><h2>Allocation records</h2><span class="small muted">Latest assignments</span></div><div class="table-wrap"><table><thead><tr><th>Allocation ID</th><th>Recipient</th><th>Item</th><th>Requested</th><th>Allocated</th><th>Date</th><th>Status</th></tr></thead><tbody id="allocationTable"></tbody></table></div></div>
+</section>
+
+<section class="page" id="page-distribution">
+  <div class="page-head"><div><div class="eyebrow">LAST-MILE DELIVERY</div><h1>Distribution Tracking</h1><p class="subtitle">Track allocated goods from packing to confirmed delivery.</p></div><button class="btn btn-primary" onclick="openModal('distribution')">＋ Create Distribution</button></div>
+  <div class="card"><div class="toolbar"><input id="distributionSearch" placeholder="Search recipient or distribution ID..." oninput="renderDistribution()"><select id="distributionStatus" onchange="renderDistribution()"><option value="">All statuses</option><option>Allocated</option><option>Packed</option><option>Dispatched</option><option>In Transit</option><option>Delivered</option></select></div>
+  <div class="table-wrap"><table><thead><tr><th>Distribution ID</th><th>Recipient</th><th>Items</th><th>Quantity</th><th>Dispatch date</th><th>Delivery location</th><th>Status</th><th>Update</th></tr></thead><tbody id="distributionTable"></tbody></table></div></div>
+</section>
+
+<section class="page" id="page-reports">
+  <div class="page-head"><div><div class="eyebrow">MEASURE YOUR IMPACT</div><h1>Reports & Analytics</h1><p class="subtitle">Understand donation trends, demand and distribution outcomes.</p></div><button class="btn btn-light" onclick="window.print()">⇩ Print Report</button></div>
+  <div class="grid stats">
+    <div class="card"><div class="stat-label">Donations recorded</div><div class="stat-value" id="reportDonations">1,250</div></div>
+    <div class="card"><div class="stat-label">Units in stock</div><div class="stat-value" id="reportStock">850</div></div>
+    <div class="card"><div class="stat-label">Requests fulfilled</div><div class="stat-value" id="reportFulfilled">0</div></div>
+    <div class="card"><div class="stat-label">Recipients registered</div><div class="stat-value" id="reportRecipients">32</div></div>
+  </div>
+  <div class="grid two-col"><div class="card"><h2>Category-wise inventory</h2><div id="reportBars"></div></div><div class="card"><h2>Distribution overview</h2><div id="distributionOverview"></div></div></div>
+  <div class="card" style="margin-top:16px"><h2>Operational insights</h2><div class="grid three-col"><div><div class="eyebrow">HIGH DEMAND</div><strong>Clothing & food</strong><p class="small muted">Monitor seasonal and essential supply.</p></div><div><div class="eyebrow">STOCK HEALTH</div><strong id="stockHealth">Review needed</strong><p class="small muted">Keep inventory balanced against requests.</p></div><div><div class="eyebrow">COMMUNITY IMPACT</div><strong>Traceable distribution</strong><p class="small muted">Maintain delivery records for accountability.</p></div></div></div>
+</section>
+
+<section class="page" id="page-settings">
+  <div class="page-head"><div><div class="eyebrow">PREFERENCES</div><h1>Settings & User Roles</h1><p class="subtitle">Manage platform information and access responsibilities.</p></div></div>
+  <div class="grid two-col">
+    <div class="card"><h2>Centre information</h2><div class="field"><label>Centre name</label><input value="DONATEHUB Community Centre"></div><div class="field"><label>Contact email</label><input value="admin@donatehub.org"></div><div class="field"><label>Centre location</label><input value="Phagwara, Punjab"></div><button class="btn btn-primary" onclick="toast('Centre settings saved (prototype).')">Save Changes</button></div>
+    <div class="card"><h2>User roles & permissions</h2><div class="timeline"><div class="timeline-row"><div class="dot"></div><div><strong>Administrator</strong><div class="small muted">Full access: users, inventory, requests, allocations and reports.</div></div></div><div class="timeline-row"><div class="dot"></div><div><strong>Donor</strong><div class="small muted">Register donations and view donation history.</div></div></div><div class="timeline-row"><div class="dot"></div><div><strong>Recipient</strong><div class="small muted">Submit requests and track distribution status.</div></div></div><div class="timeline-row"><div class="dot"></div><div><strong>Volunteer</strong><div class="small muted">Support collection, packing and delivery updates.</div></div></div></div></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h2>Platform workflow</h2><p class="muted">Donation received → Inventory updated → Recipient request submitted → Request reviewed → Goods allocated → Packed and dispatched → Delivery confirmed.</p></div>
+</section>
+</main>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="modal-head"><h2 id="modalTitle">Add record</h2><button class="close" onclick="closeModal()">×</button></div><form id="modalForm"><div id="modalFields" class="form-grid"></div><div style="display:flex;justify-content:flex-end;gap:9px;margin-top:8px"><button type="button" class="btn btn-light" onclick="closeModal()">Cancel</button><button class="btn btn-primary" type="submit">Save Record</button></div></form></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let inventory=[
+ {id:1,item:'Winter jackets',category:'Clothing',available:250,reserved:0,condition:'Good',location:'Storage A-01'},
+ {id:2,item:'Rice packets',category:'Food',available:180,reserved:0,condition:'New',location:'Food Store B-02'},
+ {id:3,item:'Study tables',category:'Furniture',available:10,reserved:0,condition:'Good',location:'Storage C-01'},
+ {id:4,item:'School books',category:'Books',available:120,reserved:0,condition:'Good',location:'Storage A-03'},
+ {id:5,item:'LED lamps',category:'Electronics',available:45,reserved:0,condition:'New',location:'Storage D-01'},
+ {id:6,item:'Blankets',category:'Household',available:245,reserved:0,condition:'Good',location:'Storage A-02'}
+];
+let donations=[
+ {id:'DN-1001',donor:'Aarav Mehta',item:'Winter jackets',category:'Clothing',qty:50,condition:'Good',date:'2026-11-01',status:'Received'},
+ {id:'DN-1002',donor:'Green Basket NGO',item:'Rice packets',category:'Food',qty:80,condition:'New',date:'2026-10-31',status:'Received'},
+ {id:'DN-1003',donor:'Neha Sharma',item:'School books',category:'Books',qty:30,condition:'Good',date:'2026-10-30',status:'Received'}
+];
+let recipients=[
+ {id:'RC-01',name:'Hope Foundation',type:'NGO',contact:'Riya Kapoor',phone:'98765 43210',location:'Phagwara',beneficiaries:120,verified:'Verified'},
+ {id:'RC-02',name:'Sunrise Shelter',type:'Shelter',contact:'Amit Verma',phone:'98765 12340',location:'Jalandhar',beneficiaries:75,verified:'Verified'},
+ {id:'RC-03',name:'Bright Future School',type:'School',contact:'Simran Kaur',phone:'98760 12345',location:'Kapurthala',beneficiaries:200,verified:'Pending'}
+];
+let requests=[
+ {id:'RQ-2001',recipient:'Hope Foundation',item:'Blankets',category:'Household',qty:100,priority:'High',date:'2026-11-05',status:'Pending'},
+ {id:'RQ-2002',recipient:'Sunrise Shelter',item:'Rice packets',category:'Food',qty:60,priority:'Urgent',date:'2026-11-03',status:'Approved'},
+ {id:'RQ-2003',recipient:'Bright Future School',item:'School books',category:'Books',qty:40,priority:'Normal',date:'2026-11-10',status:'Under Review'}
+];
+let allocations=[], distributions=[], nextDonation=1004,nextRequest=2004,nextAllocation=3001,nextDistribution=4001;
+const categories=[['Clothing','👕'],['Food','🥫'],['Furniture','🪑'],['Books','📚'],['Electronics','💡'],['Household','🧺']];
+function num(n){return Number(n||0).toLocaleString('en-IN')}
+function totalStock(){return inventory.reduce((s,x)=>s+x.available,0)}
+function reservedStock(){return inventory.reduce((s,x)=>s+x.reserved,0)}
+function statusClass(s){return ['Pending','Under Review','Partially Approved'].includes(s)?'pending':['Dispatched','In Transit','Packed','Approved','Allocated'].includes(s)?'progress':s==='Rejected'?'danger':''}
+function badge(s){return `<span class="status ${statusClass(s)}">${s}</span>`}
+function showPage(name){
+ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+ $('page-'+name).classList.add('active');
+ document.querySelectorAll('#navigation button').forEach(b=>b.classList.toggle('active',b.dataset.page===name));
+ $('crumb').textContent=name==='dashboard'?'Dashboard':name.charAt(0).toUpperCase()+name.slice(1);
+ $('sidebar').classList.remove('open');renderAll();
+}
+$('navigation').addEventListener('click',e=>{const b=e.target.closest('button[data-page]');if(b)showPage(b.dataset.page)});
+$('menuBtn').onclick=()=>$('sidebar').classList.toggle('open');
+$('globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){showPage('inventory');$('inventorySearch').value=e.target.value;renderInventory()}});
+function renderDashboard(){
+ $('statDonations').textContent=num(1250+donations.length-3);
+ $('statStock').textContent=num(totalStock());$('statRequests').textContent=num(requests.filter(r=>['Pending','Under Review'].includes(r.status)).length+42);
+ $('statDistributed').textContent=num(400+distributions.filter(d=>d.status==='Delivered').reduce((s,d)=>s+d.qty,0));
+ $('categoryBars').innerHTML=categories.map(([c])=>{let n=inventory.filter(x=>x.category===c).reduce((s,x)=>s+x.available,0);let pct=Math.min(100,n/Math.max(totalStock(),1)*100*2.2);return `<div class="bar-row"><span>${c}</span><div class="bar"><span style="width:${pct}%"></span></div><strong>${num(n)}</strong></div>`}).join('');
+ $('urgentList').innerHTML=requests.filter(r=>['Urgent','High'].includes(r.priority)).slice(0,4).map(r=>`<div class="timeline-row"><div class="dot"></div><div style="flex:1"><strong>${r.item} · ${r.qty} units</strong><div class="small muted">${r.recipient} · Needed by ${r.date}</div></div>${badge(r.priority)}</div>`).join('')||'<div class="empty">No urgent requirements.</div>';
+ $('recentActivity').innerHTML=donations.slice(-4).reverse().map(d=>`<tr><td class="item-name">Donation received</td><td>${d.qty} × ${d.item} from ${d.donor}</td><td>${d.date}</td><td>${badge('Received')}</td></tr>`).join('');
+}
+function renderDonations(){
+ let q=($('donationSearch')?.value||'').toLowerCase(),c=$('donationCategory')?.value||'';
+ let rows=donations.filter(d=>(!q||(d.donor+' '+d.item).toLowerCase().includes(q))&&(!c||d.category===c));
+ $('donationsTable').innerHTML=rows.map(d=>`<tr><td>${d.id}</td><td class="item-name">${d.donor}</td><td>${d.item}<div class="subtext">${d.category}</div></td><td>${d.qty}</td><td>${d.condition}</td><td>${d.date}</td><td>${badge(d.status)}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">No donations found.</td></tr>';
+}
+function renderCategories(){
+ $('categoryCards').innerHTML=categories.map(([c,ico])=>{let items=inventory.filter(x=>x.category===c),n=items.reduce((s,x)=>s+x.available,0);return `<div class="card category-card"><div class="category-icon">${ico}</div><div><strong>${c}</strong><small>${items.length} item types · ${num(n)} available units</small></div></div>`}).join('');
+}
+function renderInventory(){
+ let q=($('inventorySearch')?.value||'').toLowerCase(),c=$('inventoryCategory')?.value||'',cond=$('inventoryCondition')?.value||'';
+ let rows=inventory.filter(x=>(!q||(x.item+' '+x.location).toLowerCase().includes(q))&&(!c||x.category===c)&&(!cond||x.condition===cond));
+ $('inventoryTable').innerHTML=rows.map(x=>`<tr><td class="item-name">${x.item}</td><td>${x.category}</td><td><strong>${x.available}</strong></td><td>${x.reserved}</td><td>${x.condition}</td><td>${x.location}</td><td>${x.available<30?badge('Low stock'):badge('Available')}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">No inventory items found.</td></tr>';
+ $('inventoryTotal').textContent=num(totalStock()+reservedStock());$('inventoryAvailable').textContent=num(totalStock());$('inventoryReserved').textContent=num(reservedStock());$('inventoryLow').textContent=inventory.filter(x=>x.available<30).length;
+}
+function renderRecipients(){
+ let q=($('recipientSearch')?.value||'').toLowerCase(),t=$('recipientType')?.value||'';
+ let rows=recipients.filter(r=>(!q||(r.name+' '+r.location).toLowerCase().includes(q))&&(!t||r.type===t));
+ $('recipientsTable').innerHTML=rows.map(r=>`<tr><td class="item-name">${r.name}<div class="subtext">${r.id}</div></td><td>${r.type}</td><td>${r.contact}</td><td>${r.phone}</td><td>${r.location}</td><td>${r.beneficiaries}</td><td>${badge(r.verified)}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">No recipients found.</td></tr>';
+}
+function renderRequests(){
+ let q=($('requestSearch')?.value||'').toLowerCase(),s=$('requestStatus')?.value||'';
+ let rows=requests.filter(r=>(!q||(r.id+' '+r.recipient+' '+r.item).toLowerCase().includes(q))&&(!s||r.status===s));
+ $('requestsTable').innerHTML=rows.map(r=>`<tr><td>${r.id}</td><td class="item-name">${r.recipient}</td><td>${r.item}<div class="subtext">${r.category}</div></td><td>${r.qty}</td><td>${badge(r.priority)}</td><td>${r.date}</td><td>${badge(r.status)}</td><td><div class="actions">${r.status==='Pending'||r.status==='Under Review'?`<button class="mini" onclick="setRequestStatus('${r.id}','Approved')">Approve</button><button class="mini" onclick="setRequestStatus('${r.id}','Rejected')">Reject</button>`:r.status==='Approved'?`<button class="mini" onclick="showPage('allocation')">Allocate</button>`:'—'}</div></td></tr>`).join('')||'<tr><td colspan="8" class="empty">No requests found.</td></tr>';
+}
+function setRequestStatus(id,status){let r=requests.find(x=>x.id===id);if(r){r.status=status;toast('Request '+status.toLowerCase()+'.');renderAll()}}
+function renderAllocation(){
+ $('approvedCount').textContent=requests.filter(r=>r.status==='Approved').length;
+ $('allocatedCount').textContent=num(allocations.reduce((s,a)=>s+a.qty,0));
+ $('allocationTable').innerHTML=allocations.map(a=>`<tr><td>${a.id}</td><td class="item-name">${a.recipient}</td><td>${a.item}</td><td>${a.requested}</td><td>${a.qty}</td><td>${a.date}</td><td>${badge(a.status)}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">No allocations yet. Approve a request and create an allocation.</td></tr>';
+}
+function renderDistribution(){
+ let q=($('distributionSearch')?.value||'').toLowerCase(),s=$('distributionStatus')?.value||'';
+ let rows=distributions.filter(d=>(!q||(d.id+' '+d.recipient).toLowerCase().includes(q))&&(!s||d.status===s));
+ $('distributionTable').innerHTML=rows.map(d=>`<tr><td>${d.id}</td><td class="item-name">${d.recipient}</td><td>${d.item}</td><td>${d.qty}</td><td>${d.date}</td><td>${d.location}</td><td>${badge(d.status)}</td><td><select style="border:1px solid var(--line);padding:6px;border-radius:7px" onchange="updateDistribution('${d.id}',this.value)">${['Allocated','Packed','Dispatched','In Transit','Delivered'].map(x=>`<option ${d.status===x?'selected':''}>${x}</option>`).join('')}</select></td></tr>`).join('')||'<tr><td colspan="8" class="empty">No distribution records yet.</td></tr>';
+}
+function updateDistribution(id,status){let d=distributions.find(x=>x.id===id);if(!d)return;if(status==='Delivered'&&d.status!=='Delivered'){d.status=status;let inv=inventory.find(x=>x.item===d.item);if(inv)inv.reserved=Math.max(0,inv.reserved-d.qty);toast('Delivery confirmed. Inventory updated.')}else d.status=status;renderAll()}
+function renderReports(){
+ $('reportDonations').textContent=num(1250+donations.length-3);$('reportStock').textContent=num(totalStock());$('reportFulfilled').textContent=requests.filter(r=>r.status==='Fulfilled').length+distributions.filter(d=>d.status==='Delivered').length;$('reportRecipients').textContent=32+recipients.length-3;
+ $('reportBars').innerHTML=categories.map(([c])=>{let n=inventory.filter(x=>x.category===c).reduce((s,x)=>s+x.available,0);return `<div class="bar-row"><span>${c}</span><div class="bar"><span style="width:${Math.min(100,n/Math.max(totalStock(),1)*100)}%"></span></div><strong>${n}</strong></div>`}).join('');
+ let counts=['Allocated','Packed','Dispatched','In Transit','Delivered'].map(s=>[s,distributions.filter(d=>d.status===s).length]);$('distributionOverview').innerHTML=counts.map(([s,n])=>`<div style="display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line)"><span>${s}</span><strong>${n}</strong></div>`).join('');$('stockHealth').textContent=inventory.some(x=>x.available<30)?'Some low stock items':'Stock levels monitored';
+}
+function renderAll(){renderDashboard();renderDonations();renderCategories();renderInventory();renderRecipients();renderRequests();renderAllocation();renderDistribution();renderReports()}
+function toast(message){let t=$('toast');t.textContent=message;t.style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.style.display='none',2600)}
+function openModal(type){
+ const configs={
+ donation:{title:'Register a Donation',fields:[['donor','Donor name','text',true],['phone','Contact number','text',false],['item','Item name','text',true],['category','Category','select',true,['Clothing','Food','Furniture','Books','Electronics','Household']],['qty','Quantity','number',true],['condition','Condition','select',true,['New','Good','Fair']],['date','Donation date','date',true],['location','Storage location','text',false]]},
+ category:{title:'Add a Category',fields:[['name','Category name','text',true],['icon','Category icon (emoji)','text',false]]},
+ recipient:{title:'Register Recipient',fields:[['name','Organisation name','text',true],['type','Organisation type','select',true,['NGO','Shelter','School','Community Centre']],['contact','Contact person','text',true],['phone','Phone number','text',true],['location','Location','text',true],['beneficiaries','Number of beneficiaries','number',true]]},
+ request:{title:'Create Donation Request',fields:[['recipient','Recipient','select',true,recipients.map(r=>r.name)],['item','Required item','text',true],['category','Category','select',true,categories.map(c=>c[0])],['qty','Required quantity','number',true],['priority','Priority','select',true,['Normal','High','Urgent']],['date','Required by','date',true]]},
+ allocation:{title:'Create Allocation',fields:[['request','Approved request','select',true,requests.filter(r=>r.status==='Approved').map(r=>r.id+' — '+r.recipient+' — '+r.item)],['qty','Quantity to allocate','number',true]]},
+ distribution:{title:'Create Distribution',fields:[['allocation','Allocation','select',true,allocations.filter(a=>a.status==='Allocated').map(a=>a.id+' — '+a.recipient+' — '+a.item)],['date','Dispatch date','date',true],['location','Delivery location','text',true]]}
+ };
+ let cfg=configs[type];if(!cfg){toast('This option is not available.');return}
+ $('modalTitle').textContent=cfg.title;$('modalForm').dataset.type=type;
+ $('modalFields').innerHTML=cfg.fields.map(f=>{let [name,label,kind,required,opts]=f;let input=kind==='select'?`<select name="${name}" ${required?'required':''}><option value="">Select ${label.toLowerCase()}</option>${opts.map(o=>`<option>${o}</option>`).join('')}</select>`:`<input name="${name}" type="${kind}" ${required?'required':''} ${kind==='number'?'min="1"':''} ${kind==='date'?'value="'+new Date().toISOString().slice(0,10)+'"':''}>`;return `<div class="field ${name==='location'?'full':''}"><label>${label}${required?' *':''}</label>${input}</div>`}).join('');
+ $('modalBackdrop').classList.add('show');
+}
+function closeModal(){$('modalBackdrop').classList.remove('show');$('modalForm').reset()}
+$('modalForm').addEventListener('submit',e=>{
+ e.preventDefault();let type=e.currentTarget.dataset.type,data=Object.fromEntries(new FormData(e.currentTarget).entries());
+ if(type==='donation'){
+  let qty=+data.qty,existing=inventory.find(x=>x.item.toLowerCase()===data.item.toLowerCase()&&x.category===data.category);
+  if(existing){existing.available+=qty;if(data.condition==='New')existing.condition='New'}else inventory.push({id:Date.now(),item:data.item,category:data.category,available:qty,reserved:0,condition:data.condition,location:data.location||'Main Storage'});
+  donations.push({id:'DN-'+nextDonation++,donor:data.donor,item:data.item,category:data.category,qty,condition:data.condition,date:data.date,status:'Received'});toast('Donation recorded and inventory updated.');
+ }else if(type==='category'){if(!categories.some(c=>c[0].toLowerCase()===data.name.toLowerCase()))categories.push([data.name,data.icon||'📦']);toast('Category added.')}
+ else if(type==='recipient'){recipients.push({id:'RC-'+String(recipients.length+1).padStart(2,'0'),...data,beneficiaries:+data.beneficiaries,verified:'Pending'});toast('Recipient registered.')}
+ else if(type==='request'){requests.push({id:'RQ-'+nextRequest++,...data,qty:+data.qty,status:'Pending'});toast('Request submitted.')}
+ else if(type==='allocation'){
+  let reqId=data.request.split(' — ')[0],req=requests.find(r=>r.id===reqId),qty=+data.qty,inv=req&&inventory.find(x=>x.item.toLowerCase()===req.item.toLowerCase());
+  if(!req||!inv){toast('Matching inventory item not found.');return}
+  if(qty>req.qty){toast('Cannot allocate more than requested.');return}
+  if(qty>inv.available){toast('Insufficient available stock.');return}
+  inv.available-=qty;inv.reserved+=qty;req.status=qty===req.qty?'Partially Approved':'Partially Approved';
+  allocations.push({id:'AL-'+nextAllocation++,recipient:req.recipient,item:req.item,requested:req.qty,qty,date:new Date().toISOString().slice(0,10),status:'Allocated'});toast('Goods allocated and stock reserved.');
+ }else if(type==='distribution'){
+  let allocId=data.allocation.split(' — ')[0],a=allocations.find(x=>x.id===allocId);if(!a){toast('Select a valid allocation.');return}
+  if(distributions.some(d=>d.allocationId===allocId)){toast('A distribution already exists for this allocation.');return}
+  distributions.push({id:'DS-'+nextDistribution++,allocationId:allocId,recipient:a.recipient,item:a.item,qty:a.qty,date:data.date,location:data.location,status:'Allocated'});toast('Distribution record created.');
+ }
+ closeModal();renderAll();
+});
+renderAll();
+</script>
+</body>
+</html>
